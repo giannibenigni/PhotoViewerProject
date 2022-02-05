@@ -3,23 +3,78 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PhotoViewer"
+        xmlns:local="clr-namespace:PhotoViewer" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         WindowState="Maximized"
         Title="MainWindow" Height="450" Width="800">
+
+    <Window.Resources>
+        <Geometry x:Key="ImageFolder">M7.5160018,7.0210069L32,7.0210069 26.112001,21.280001 2.2460016,21.280001z M0,0L9.2969996,0 11.158,4.0930236 26.091997,4.0930236 26.087999,5.3469933 6.3500015,5.3469933 0.46300124,21.280001 0,21.280001z</Geometry>
+    
+    
+    
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <TreeView ItemsSource="{Binding HardDisks}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        
+        <!--Elenco cartelle-->
+        <TreeView x:Name="tree" ItemsSource="{Binding HardDisks}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectedItemChanged">
+                    <i:InvokeCommandAction Command="{Binding Path=DataContext.ItemSelectedCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" CommandParameter="{Binding Path=SelectedItem, ElementName=tree}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children, Mode=TwoWay, IsAsync=True}">
-                    <TextBlock Text="{Binding Name}"/>
+                    <StackPanel Orientation="Horizontal" MaxHeight="20">
+                        <Viewbox>
+                            <Path Stretch="UniformToFill" Data="{StaticResource ImageFolder}" Fill="#F8D775" Margin="4"/>
+                        </Viewbox>
+                        <TextBlock Text="{Binding Name}" FontSize="14"/>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
-        
+
+        <!-- Elenco Immagini-->
+        <ScrollViewer Grid.Column="1">
+            <ListBox IsSynchronizedWithCurrentItem="True" Margin="5" ItemsSource="{Binding FolderItems}">
+                <ListBox.Template>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <WrapPanel Margin="5" IsItemsHost="True" Orientation="Horizontal"
+                                   ItemHeight="{Binding ZoomLevel}"
+                                   ItemWidth="{Binding ZoomLevel}"
+                                   VerticalAlignment="Top" HorizontalAlignment="Stretch" />
+                    </ControlTemplate>
+                </ListBox.Template>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="1" BorderBrush="Black">
+                            <Image Source="{Binding Image.Thumbnail}"/>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="3" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Slider Grid.Column="1" Value="{Binding ZoomLevel, UpdateSourceTrigger=PropertyChanged}" Maximum="360" Minimum="80"/>
+
+        </Grid>
     </Grid>
 </Window>

@@ -9,7 +9,7 @@ namespace PhotoViewer.Utils
     public class ItemWrap
     {
         public string Name { get; set; }
-        public bool IsFile { get; set; }
+        public string Path { get; set; }
 
         public List<ItemWrap> Children { get; set; } = new List<ItemWrap>();
     }
