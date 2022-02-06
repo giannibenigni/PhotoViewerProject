@@ -2,15 +2,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PhotoViewer
 {
-    public class MainWindowModel : INotifyPropertyChanged
+    public class MainWindowModel : Base
     {
         private int zoomLevel = 160;
         #region Properties
@@ -50,12 +52,13 @@ namespace PhotoViewer
             FolderItems = new List<FileWrap>();
 
             var directory = new DirectoryInfo(item.Path);
-            foreach (var file in directory.GetFiles("*.jpg"))
+            foreach (var file in directory.GetFiles().Where(a => a.Extension.Contains(".jpg") || a.Extension.Contains(".jpeg")))
             {
                 FolderItems.Add(new FileWrap
                 {
-                    Image = BitmapFrame.Create(new Uri(file.FullName)),
+                    Path = file.FullName,
                     Name = file.Name,
+                    Metadata = new MetadataWrap(file.FullName),
                 });
             }
             OnPropertyChanged(nameof(FolderItems));
@@ -102,59 +105,35 @@ namespace PhotoViewer
             }
         }
 
-        public void GetFiles(string path, List<ItemWrap> list)
+        private BitmapSource CreateBitmapSource(Uri path)
         {
-            try
-            {
-                foreach (var item in Directory.GetFiles(path))
-                {
-                    var file = new ItemWrap();
-                    file.Name = Path.GetFileName(item);
-
-                    list.Add(file);
-                }
-            }
-            catch
-            {
-            }
+            BitmapImage bmpImage = new BitmapImage();
+            bmpImage.BeginInit();
+            bmpImage.UriSource = path;
+            bmpImage.EndInit();
+            return bmpImage;
         }
 
-        public Size GetThumbnailSize(Image original)
+        private BitmapSource CreateThumbnail(Uri path)
         {
-            // Maximum size of any dimension.
-            const int maxPixels = 40;
+            BitmapImage bmpImage = new BitmapImage();
+            bmpImage.BeginInit();
+            bmpImage.UriSource = path;
+            bmpImage.DecodePixelWidth = 120;
+            bmpImage.EndInit();
+            //if (bmpImage.Width > bmpImage.Height)
+            //else
+            //    bmpImage.DecodePixelHeight = 120;
 
-            // Width and height.
-            int originalWidth = original.Width;
-            int originalHeight = original.Height;
-
-            // Compute best factor to scale entire image based on larger dimension.
-            double factor;
-            if (originalWidth > originalHeight)
-            {
-                factor = (double)maxPixels / originalWidth;
-            }
-            else
-            {
-                factor = (double)maxPixels / originalHeight;
-            }
-
-            // Return thumbnail size.
-            return new Size((int)(originalWidth * factor), (int)(originalHeight * factor));
+            return bmpImage;
         }
 
-        public BitmapImage ImageFromBuffer(Byte[] bytes)
-        {
-            MemoryStream stream = new MemoryStream(bytes);
-            BitmapImage image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = stream;
-            image.EndInit();
-            image.Freeze();
-            return image;
-        }
+       
 
+    }
 
+    public class Base : INotifyPropertyChanged
+    {
         #region Event
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -162,6 +141,6 @@ namespace PhotoViewer
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         #endregion
-
     }
+
 }

@@ -3,16 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PhotoViewer" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:PhotoViewer" 
+        xmlns:util="clr-namespace:PhotoViewer.Utils" 
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         WindowState="Maximized"
         Title="MainWindow" Height="450" Width="800">
 
     <Window.Resources>
         <Geometry x:Key="ImageFolder">M7.5160018,7.0210069L32,7.0210069 26.112001,21.280001 2.2460016,21.280001z M0,0L9.2969996,0 11.158,4.0930236 26.091997,4.0930236 26.087999,5.3469933 6.3500015,5.3469933 0.46300124,21.280001 0,21.280001z</Geometry>
-    
-    
-    
+
+        <util:PathToThumbnailConverter x:Key="thumbnail"/>
+
     </Window.Resources>
 
     <Grid>
@@ -26,7 +28,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        
+
         <!--Elenco cartelle-->
         <TreeView x:Name="tree" ItemsSource="{Binding HardDisks}">
             <i:Interaction.Triggers>
@@ -51,16 +53,37 @@
             <ListBox IsSynchronizedWithCurrentItem="True" Margin="5" ItemsSource="{Binding FolderItems}">
                 <ListBox.Template>
                     <ControlTemplate TargetType="{x:Type ListBox}">
-                        <WrapPanel Margin="5" IsItemsHost="True" Orientation="Horizontal"
-                                   ItemHeight="{Binding ZoomLevel}"
-                                   ItemWidth="{Binding ZoomLevel}"
-                                   VerticalAlignment="Top" HorizontalAlignment="Stretch" />
+                        <WrapPanel Margin="5" IsItemsHost="True" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Stretch"/>
                     </ControlTemplate>
                 </ListBox.Template>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="1" BorderBrush="Black">
-                            <Image Source="{Binding Image.Thumbnail}"/>
+                        <Border HorizontalAlignment="Stretch" Width="{Binding ElementName=ZoomLevel, Path=Value}" Height="{Binding ElementName=ZoomLevel, Path=Value}" BorderThickness="1" BorderBrush="Gray" Margin="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid HorizontalAlignment="Center" Margin="5" VerticalAlignment="Top">
+                                    <Image x:Name="img" Grid.Column="1" Source="{Binding Path, Converter={StaticResource thumbnail}, IsAsync=True}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Grid>
+
+                                <Grid Grid.Row="1" VerticalAlignment="Bottom" Margin="5">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+
+                                    <Border Background="LightGray">
+                                        <TextBlock Text="{Binding Metadata.Dimensions}" Grid.Row="0" HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <Border Grid.Row="1" Background="Goldenrod">
+                                        <TextBlock  Text="{Binding Name}" HorizontalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -73,7 +96,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Slider Grid.Column="1" Value="{Binding ZoomLevel, UpdateSourceTrigger=PropertyChanged}" Maximum="360" Minimum="80"/>
+            <Slider x:Name="ZoomLevel" Grid.Column="1" Value="{Binding ZoomLevel, UpdateSourceTrigger=PropertyChanged}" Maximum="360" Minimum="250" HorizontalAlignment="Stretch"/>
 
         </Grid>
     </Grid>
